@@ -15,7 +15,7 @@ ans = 'open'
 Response = ClientSocket.recv(1024)
 while ans != 'exit':
     ans = input('\nEnter a command:')
-    
+    #will check if any of the commands were used
     if ans == 'query games' or ans == 'query players':
         ClientSocket.send(str.encode(ans))
         Response = ClientSocket.recv(1024)
