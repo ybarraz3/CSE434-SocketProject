@@ -1,5 +1,6 @@
 import socket
 import os
+from socket import* 
 from _thread import *
 
 ServerSocket = socket.socket()
@@ -51,6 +52,23 @@ def threaded_client(connection):
             resultLength = len(players)
             if initialLength != resultLength:
                 reply = 'SUCCESS'
+            break
+        elif decodeddata[0:4] == 'end ':#checks if command used was end game
+            reply = 'FAILURE'
+            initialLength = len(games)
+            games = [i for i in games if i[0] != decodeddata[12:]]
+            if initialLength != len(games):
+                reply = 'SUCCESS'
+        elif decodeddata[0:11] == 'start game':
+            reply = 'FAILURE'
+
+            game = decodeddata.split(' ')
+            game.remove('end')
+
+            games.append(game)
+
+            reply = 'SUCESS'
+
         else:
             reply = 'error'
         connection.sendall(str.encode(reply))
@@ -60,5 +78,4 @@ while True:
     Client, address = ServerSocket.accept()
     print('Connected to: ' + address[0] + ':' + str(address[1]))
     start_new_thread(threaded_client, (Client, ))
-
-ServerSocket.close()
+    ServerSocket.close()
