@@ -5,7 +5,7 @@ from _thread import *
 
 ServerSocket = socket.socket()
 host = '10.120.70.106'
-port = 1233
+port = 16001
 players = []
 games = []
 
