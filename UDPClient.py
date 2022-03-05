@@ -1,3 +1,4 @@
+from pickle import TRUE
 import socket
 
 ClientSocket = socket.socket()
@@ -24,6 +25,7 @@ while ans != 'exit':
         ClientSocket.send(str.encode(ans))
         Response = ClientSocket.recv(1024)
         print(Response.decode('utf-8'))
+        ClientSocket.close()
     elif ans[0:9] =='register ':
         ClientSocket.send(str.encode(ans))
         Response = ClientSocket.recv(1024)
@@ -36,6 +38,7 @@ while ans != 'exit':
         ClientSocket.send(str.encode(ans))
         Response = ClientSocket.recv(1024)
         print(Response.decode('utf-8'))
+        
     elif ans != 'exit':
         print('not a valid command try again')
 

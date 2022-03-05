@@ -38,13 +38,17 @@ def threaded_client(connection):
             else:
                 reply = '0\n[]'#no players
         elif decodeddata[0:9] == 'register ':#checks if command used was register
-            reply = 'FAILURE'
-            
             player = decodeddata.split(' ')
             player.remove('register')
-
-            players.append(player)
-            reply = 'SUCCESS'
+            player.append('0') # this number will represent 1 if in game 2 if dealer and 0 if not in game
+            
+            if player[2] in players:
+               reply = 'FAILURE'
+            elif player[0] in players:
+               reply = 'FAILURE'
+            else:
+               players.append(player)
+               reply = 'SUCCESS'
         elif decodeddata[0:12] == 'de-register ':#checks if command used was de-register
             reply = 'FAILURE'
             initialLength = len(players)
@@ -63,11 +67,23 @@ def threaded_client(connection):
             reply = 'FAILURE'
 
             game = decodeddata.split(' ')
-            game.remove('end')
+            game.remove('start')
+            game.remove('game')
+            gameStart = False
 
-            games.append(game)
-
-            reply = 'SUCESS'
+            if 1<= game[1] <= 3:
+                if game[0] in players:# check if user is in player
+                    j = 0
+                    for i in players:#check if there are sufficient players available
+                        if i[3] == 0:
+                            j = j + 1
+                        if i[0] == game[0]:
+                            gameStart = True
+                    
+                    if j >= game[1]:
+                        if gameStart == True: #start a new thread and begin game
+                            games.append(game)
+                            reply = 'SUCESS'
 
         else:
             reply = 'error'
