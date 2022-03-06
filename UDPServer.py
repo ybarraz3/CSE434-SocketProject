@@ -1,6 +1,5 @@
 import socket
 import os
-from socket import* 
 from _thread import *
 
 ServerSocket = socket.socket()
@@ -44,6 +43,7 @@ def threadded_game(playerList, dealer, gameIdnum):
         for j in clients:
             if i[1] == j[1]:
                 i.append(j[0])
+                j[i].sendall(str.encode('player'))
                 msg = 'sixCard'#command to recieve starting cards
                 dealerClient.sendall(str.encode(msg))#sends msg
                 msgRecv = dealerClient.recv(2048)#recieve card from dealer
@@ -67,7 +67,7 @@ def threadded_game(playerList, dealer, gameIdnum):
                 dealerClient.sendall(str.encode(newmsg))#send the command and card to dealer
                 msgRecv = dealerClient.recv(2048)#recieve new card from dealer
                 decodedmsg = msgRecv.decode('utc-8')#decode msg
-                currPlayer[4].sendall(str.encode('newcard ' + decodedmsg))#send card to player
+                currPlayer[4].sendall(str.encode(decodedmsg))#send card to player
             elif decodedmsg[0:8] == 'discard ':
                 #request the discarded card
                 card = decodedmsg.split(' ')#split the message into the discard and card
@@ -75,7 +75,7 @@ def threadded_game(playerList, dealer, gameIdnum):
                 dealerClient.sendall(str.encode(newmsg))#send the command and card to dealer
                 msgRecv = dealerClient.recv(2048)#recieve new card from dealer
                 decodedmsg = msgRecv.decode('utc-8')#decode msg
-                currPlayer[4].sendall(str.encode('newcard ' + decodedmsg))#send card to player
+                currPlayer[4].sendall(str.encode(decodedmsg))#send card to player
             elif decodedmsg[0:5] == "steal ":#steal the card from the specified player
                 card = decodedmsg.split(' ')#split msg into steal name and card
                 newmsg = 'stealcard ' + card[2]
@@ -84,7 +84,7 @@ def threadded_game(playerList, dealer, gameIdnum):
                         i[4].sendall(str.encode(newmsg))#send msg
                         msgRecv = i[4].recv(2048)#receive new card from other player
                         decodedmsg = msgRecv.decode('utc-8')
-                        currPlayer[4].sendall(str.encode('newcard ' + decodedmsg))#send the card back to og player
+                        currPlayer[4].sendall(str.encode(decodedmsg))#send the card back to og player
             elif decodedmsg[0:4] == 'end ':#checks if command used was end game
                 reply = 'FAILURE'
                 initialLength = len(games)
@@ -160,7 +160,7 @@ def threaded_client(connection):
                             start_new_thread(threadded_game(playerList,dealer,gameId))
                             game.append(gameId)
                             games.append(game)
-                            reply = 'SUCESS'
+                            reply = 'SUCCESS'
                     else:
                         for i in players:#no game, set dealer back to 0
                             if i[0] == game[0]:

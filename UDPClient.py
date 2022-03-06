@@ -28,6 +28,10 @@ ans = 'open'
 Response = ClientSocket.recv(1024)
 while ans != 'exit':
     ans = input('\nEnter a command:')
+    Respponse = ClientSocket.recv(1024)
+    decResponse = Respponse.decode('utf-8')
+    if(decResponse == 'player'):
+        inGame = 1
     #will check if any of the commands were used
     if ans == 'query games' or ans == 'query players':
         ClientSocket.send(str.encode(ans))
@@ -50,38 +54,40 @@ while ans != 'exit':
         ClientSocket.send(str.encode(ans))
         Response = ClientSocket.recv(1024)
         print(Response.decode('utf-8'))
-    elif inGame == 1:#player
+        if(Response == 'SUCCESS'):
+            inGame = 2
+    if inGame == 1 or inGame == 2:#player
         print('Welcome to game')
-        while inGame == 1:
-            Response = ClientSocket.recv(1024)
-            
-    elif inGame == 2:#dealer
-        
-        while inGame == 2 and ans != 'exit':
-            if ans == 'stock':
-                #take card from stock
-
-
-
+        while inGame == 1 or inGame == 2:
+            response = ClientSocket.recv(1024)
+            decodedResp = response.decode('utf-8')
+            for i in cards:
+                #display if visible
+                if i == 2:
+                    print('\n')
+                if i < visibleCards:
+                    #print
+                    print(cards[i])
+                else:
+                    print(' *** ')
+                #do not display and instead print ***
+            if visibleCards == 6:
+                print('All card are turned, turn is passed')
+                if(inGame == 2):
+                    ClientSocket.send(str.encode('end'))
+            elif decodedResp[0:10] == 'recvcards ':
+                #add cards to curr card list
+            elif decodedResp == 'your turn':
+                
+                ans = input('\nEnter game command: ')#ask user for their input
+                ans = ans + #face down card if any
                 ClientSocket.send(str.encode(ans))
-                Response = ClientSocket.recv(1024)
-            elif ans == 'discard':
-                #take card from discard
-
-
-
-                ClientSocket.send(str.encode(ans))
-                Response = ClientSocket.recv(1024)
-            elif ans[0:5] == 'steal ':
-                #steal card from another player, only steal face down card
-
-
-
-                ClientSocket.send(str.encode(ans))
-                Response = ClientSocket.recv(1024)
-            elif ans == 'exit':
-                inGame == 0
-                ClientSocket.send(str.encode('game interupted'))
+            elif decodedResp == 'stockCard':
+            elif decodedResp == 'discardCard':
+            elif decodedResp == 'sixcard':
+            elif decodedResp[0:10] == 'stealcard ':#someone is stealing your card
+                #give your card and replace with the card in steal card
+            elif decodedResp == 'end'
         
     elif ans != 'exit':
         print('not a valid command try again')
