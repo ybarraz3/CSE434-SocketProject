@@ -76,18 +76,58 @@ while ans != 'exit':
                 if(inGame == 2):
                     ClientSocket.send(str.encode('end'))
             elif decodedResp[0:10] == 'recvcards ':
-                #add cards to curr card list
+                decodedResp.split(' ')#add cards to curr card list
+                decodedResp.remove('recvcards')
+                cards = decodedResp
             elif decodedResp == 'your turn':
-                
                 ans = input('\nEnter game command: ')#ask user for their input
-                ans = ans + #face down card if any
-                ClientSocket.send(str.encode(ans))
-            elif decodedResp == 'stockCard':
-            elif decodedResp == 'discardCard':
-            elif decodedResp == 'sixcard':
+                cmdsend = ans + cards[5]#face down card if any
+                cards.pop(5)
+                ClientSocket.send(str.encode(cmdsend))#send the command
+                visibleCards += 1
+                if ans == 'stock':
+                    response = ClientSocket.recv(1024)
+                    decodedResp = response.decode('utf-8')
+                    cards.insert[visibleCards-1,decodedResp]
+                elif ans[0:6] == 'steal ':
+                    response = ClientSocket.recv(1024)
+                    decodedResp = response.decode('utf-8')
+                    cards.insert[visibleCards-1,decodedResp]
+                elif ans == 'discard':
+                    response = ClientSocket.recv(1024)
+                    decodedResp = response.decode('utf-8')
+                    cards.insert[visibleCards-1,decodedResp]
+            elif decodedResp[0:10] == 'stockCard ':
+                #dealer gets sent card to put in discard and sends card from stock
+                newdis = decodedResp.split(' ')
+                newdis.remove('stockCard')
+                discard.insert[0,newdis]
+                stkcrd = stock[0]
+                stock.pop(0)
+                ClientSocket.send(str.encode(stkcrd))
+            elif decodedResp[0:12] == 'discardCard ':
+                #dealer gets sent card to put in discard and sends card from discard
+                newdis = decodedResp.split(' ')
+                newdis.remove('discardCard')
+                discard.insert[0,newdis]
+                discrd = discard[0]
+                discard.pop(0)
+                ClientSocket.send(str.encode(discrd))
+            elif decodedResp == 'sixcard':#dealer sends starting six card
+                newcrd = 'recvcards'
+                for x in range(0, 6):
+                    newcrd = newcrd + ' ' + cards[x]
+                ClientSocket.send(str.encode(newcrd))
             elif decodedResp[0:10] == 'stealcard ':#someone is stealing your card
                 #give your card and replace with the card in steal card
-            elif decodedResp == 'end'
+                newcard = decodedResp.split(' ')
+                newcard.remove('stealcard')
+                sendcard = cards[0]
+                cards.pop(0)
+                cards.insert[0,newcard]
+                ClientSocket.send(str.encode(sendcard))
+            elif decodedResp == 'end'or decodedResp == 'exit':
+                break
         
     elif ans != 'exit':
         print('not a valid command try again')
