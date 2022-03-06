@@ -54,27 +54,7 @@ while ans != 'exit':
         print('Welcome to game')
         while inGame == 1:
             Response = ClientSocket.recv(1024)
-            if ans == 'stock':
-                #take card from stock
-
-
-                ClientSocket.send(str.encode(ans))
-                Response = ClientSocket.recv(1024)
-            elif ans == 'discard':
-                #take card from discard
-
-
-                ClientSocket.send(str.encode(ans))
-                Response = ClientSocket.recv(1024)
-            elif ans[0:5] == 'steal ':
-                #steal card from another player, only steal face down card
-
-
-                ClientSocket.send(str.encode(ans))
-                Response = ClientSocket.recv(1024)
-            elif ans == 'exit':
-                inGame == 0
-                ClientSocket.send(str.encode('game interupted'))
+            
     elif inGame == 2:#dealer
         
         while inGame == 2 and ans != 'exit':
