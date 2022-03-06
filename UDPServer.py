@@ -6,9 +6,10 @@ from _thread import *
 ServerSocket = socket.socket()
 host = '10.120.70.106'
 port = 16001
-players = []
+players = [] #user, IPv4, port, inGame: 0=no 1=yes&player 2=yes&dealer
 games = []
 clients = []
+gameId = 100
 
 try:
     ServerSocket.bind((host, port))
@@ -21,8 +22,37 @@ ServerSocket.listen(5)
 def sortPlayers(list):
     return list[3]
 
-def threadded_game(playerList, dealer):
+def threadded_message(connection):
+
+
+def threadded_game(playerList, dealer, gameIdnum):
     print('Started a new game')
+    for i in players:
+        for j in playerList:
+            if(j[0] == i[0]):
+                i[3] = 1
+    
+    playerList.append(dealer)
+
+    while True:
+        data = connection.recv(2048)
+        decodeddata = data.decode('utf-8')
+        if decodeddata == 'stock':
+            #request a stock card from dealer
+            break
+        elif decodeddata == 'discard':
+            #request the discarded card
+            break
+        elif decodeddata[0:5] == "steal ":
+            #steal the card from the specified player
+            break
+        elif decodeddata[0:4] == 'end ':#checks if command used was end game
+            reply = 'FAILURE'
+            initialLength = len(games)
+            games = [i for i in games if i[0] != decodeddata[12:]]
+            if initialLength != len(games):
+                reply = 'SUCCESS'
+    
     #make sure playerList players get set to 0
 
 def threaded_client(connection):
@@ -64,12 +94,6 @@ def threaded_client(connection):
             if initialLength != resultLength:
                 reply = 'SUCCESS'
             break
-        elif decodeddata[0:4] == 'end ':#checks if command used was end game
-            reply = 'FAILURE'
-            initialLength = len(games)
-            games = [i for i in games if i[0] != decodeddata[12:]]
-            if initialLength != len(games):
-                reply = 'SUCCESS'
         elif decodeddata[0:11] == 'start game':
             reply = 'FAILURE'
             game = decodeddata.split(' ')
@@ -88,10 +112,12 @@ def threaded_client(connection):
                             j = j + 1
                     if j >= game[1]:
                         if gameStart == True: #start a new thread and begin game
-                            games.append(game)
                             players.sort(key=sortPlayers)
                             playerList = players[0:j]
-                            start_new_thread(threadded_game(playerList,game[0]))
+                            gameId += 1
+                            start_new_thread(threadded_game(playerList,game[0],gameId))
+                            game.append(gameId)
+                            games.append(game)
                             reply = 'SUCESS'
                     else:
                         for i in players:#check if there are sufficient players available
@@ -106,6 +132,9 @@ def threaded_client(connection):
 while True:
     Client, address = ServerSocket.accept()
     print('Connected to: ' + address[0] + ':' + str(address[1]))
-    clients.append(Client)
+    clientinfo = []
+    clientinfo.append(Client)
+    clientinfo.append(address[0])
+    clients.append(clientinfo)
     start_new_thread(threaded_client, (Client, ))
     ServerSocket.close()

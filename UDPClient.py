@@ -71,6 +71,7 @@ while ans != 'exit':
                 inGame == 0
                 ClientSocket.send(str.encode('game interupted'))
     elif inGame == 2:#dealer
+        
         while inGame == 2 and ans != 'exit':
             if ans == 'stock':
                 #take card from stock
