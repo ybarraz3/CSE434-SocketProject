@@ -8,6 +8,7 @@ host = '10.120.70.106'
 port = 16001
 players = []
 games = []
+clients = []
 
 try:
     ServerSocket.bind((host, port))
@@ -17,6 +18,12 @@ except socket.error as e:
 print('Waitiing for a Connection..')
 ServerSocket.listen(5)
 
+def sortPlayers(list):
+    return list[3]
+
+def threadded_game(playerList, dealer):
+    print('Started a new game')
+    #make sure playerList players get set to 0
 
 def threaded_client(connection):
     connection.send(str.encode('Welcome to the Server!'))
@@ -65,26 +72,32 @@ def threaded_client(connection):
                 reply = 'SUCCESS'
         elif decodeddata[0:11] == 'start game':
             reply = 'FAILURE'
-
             game = decodeddata.split(' ')
             game.remove('start')
             game.remove('game')
             gameStart = False
-
             if 1<= game[1] <= 3:
                 if game[0] in players:# check if user is in player
                     j = 0
                     for i in players:#check if there are sufficient players available
-                        if i[3] == 0:
-                            j = j + 1
                         if i[0] == game[0]:
                             gameStart = True
-                    
+                            i[3] = 2
+                    for i in players:#check if there are sufficient players available
+                        if i[3] == 0:
+                            j = j + 1
                     if j >= game[1]:
                         if gameStart == True: #start a new thread and begin game
                             games.append(game)
+                            players.sort(key=sortPlayers)
+                            playerList = players[0:j]
+                            start_new_thread(threadded_game(playerList,game[0]))
                             reply = 'SUCESS'
-
+                    else:
+                        for i in players:#check if there are sufficient players available
+                            if i[0] == game[0]:
+                                gameStart = False
+                                i[3] = 0
         else:
             reply = 'error'
         connection.sendall(str.encode(reply))
@@ -93,5 +106,6 @@ def threaded_client(connection):
 while True:
     Client, address = ServerSocket.accept()
     print('Connected to: ' + address[0] + ':' + str(address[1]))
+    clients.append(Client)
     start_new_thread(threaded_client, (Client, ))
     ServerSocket.close()
