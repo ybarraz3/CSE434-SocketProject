@@ -7,8 +7,8 @@ ServerSocket = socket.socket()
 host = '10.120.70.106'
 port = 16001
 players = [] #user, IPv4, port, inGame: 0=no 1=yes&player 2=yes&dealer
-games = []
-clients = []
+games = []#user, k, gameId
+clients = []#client, IPv4
 gameId = 100
 
 try:
@@ -22,37 +22,77 @@ ServerSocket.listen(5)
 def sortPlayers(list):
     return list[3]
 
-def threadded_message(connection):
-
-
 def threadded_game(playerList, dealer, gameIdnum):
     print('Started a new game')
+    #make sure players get marked as players
     for i in players:
-        for j in playerList:
+        for j in playerList: # has the same thing as players but player[4] has client
             if(j[0] == i[0]):
                 i[3] = 1
     
-    playerList.append(dealer)
+    #add the dealer to the player list to loop through
+    playerList.insert(0,dealer)
 
-    while True:
-        data = connection.recv(2048)
-        decodeddata = data.decode('utf-8')
-        if decodeddata == 'stock':
-            #request a stock card from dealer
-            break
-        elif decodeddata == 'discard':
-            #request the discarded card
-            break
-        elif decodeddata[0:5] == "steal ":
-            #steal the card from the specified player
-            break
-        elif decodeddata[0:4] == 'end ':#checks if command used was end game
-            reply = 'FAILURE'
-            initialLength = len(games)
-            games = [i for i in games if i[0] != decodeddata[12:]]
-            if initialLength != len(games):
-                reply = 'SUCCESS'
-    
+    #add a special connection for dealer messages
+    dealerClient
+    for i in clients:
+        if i[1] == dealer[1]:
+            dealerClient = i[0]
+
+    #initialize cards
+    for i in playerList:
+        for j in clients:
+            if i[1] == j[1]:
+                i.append(j[0])
+                msg = 'sixCard'#command to recieve starting cards
+                dealerClient.sendall(str.encode(msg))#sends msg
+                msgRecv = dealerClient.recv(2048)#recieve card from dealer
+                decodedmsg = msgRecv.decode('utf-8')#decode msg
+                j[i].sendall(str.encode(decodedmsg))#send the player their cards
+
+    #loop through turns
+    turn = 0
+    game = True
+    while game:
+        for currPlayer in playerList:
+            #maybe add a loop to ask user turn for input
+            msg = 'your turn'
+            currPlayer[4].sendall(str.encode(msg))#sends msg
+            msgRecv = currPlayer[4].recv(2048)#recieve player command
+            decodedmsg = msgRecv.decode('utf-8')#decode msg
+            if decodedmsg[0:6] == 'stock ':#stock cardToBeExchanged
+                #request a stock card from dealer
+                card = decodedmsg.split(' ')#split the message into the stock and card
+                newmsg = 'stockCard ' + card[1]#add the card to message
+                dealerClient.sendall(str.encode(newmsg))#send the command and card to dealer
+                msgRecv = dealerClient.recv(2048)#recieve new card from dealer
+                decodedmsg = msgRecv.decode('utc-8')#decode msg
+                currPlayer[4].sendall(str.encode('newcard ' + decodedmsg))#send card to player
+            elif decodedmsg[0:8] == 'discard ':
+                #request the discarded card
+                card = decodedmsg.split(' ')#split the message into the discard and card
+                newmsg = 'discardCard ' + card[1]
+                dealerClient.sendall(str.encode(newmsg))#send the command and card to dealer
+                msgRecv = dealerClient.recv(2048)#recieve new card from dealer
+                decodedmsg = msgRecv.decode('utc-8')#decode msg
+                currPlayer[4].sendall(str.encode('newcard ' + decodedmsg))#send card to player
+            elif decodedmsg[0:5] == "steal ":#steal the card from the specified player
+                card = decodedmsg.split(' ')#split msg into steal name and card
+                newmsg = 'stealcard ' + card[2]
+                for i in playerList:#send msg to player with card to swap
+                    if i[0] == card[1]:
+                        i[4].sendall(str.encode(newmsg))#send msg
+                        msgRecv = i[4].recv(2048)#receive new card from other player
+                        decodedmsg = msgRecv.decode('utc-8')
+                        currPlayer[4].sendall(str.encode('newcard ' + decodedmsg))#send the card back to og player
+            elif decodedmsg[0:4] == 'end ':#checks if command used was end game
+                reply = 'FAILURE'
+                initialLength = len(games)
+                games = [i for i in games if i[0] != decodedmsg[12:]]
+                if initialLength != len(games):
+                    reply = 'SUCCESS'
+                    game = False
+
     #make sure playerList players get set to 0
 
 def threaded_client(connection):
@@ -100,13 +140,15 @@ def threaded_client(connection):
             game.remove('start')
             game.remove('game')
             gameStart = False
+            dealer = []
             if 1<= game[1] <= 3:
                 if game[0] in players:# check if user is in player
                     j = 0
-                    for i in players:#check if there are sufficient players available
+                    for i in players:#check if there are dealer is already in game
                         if i[0] == game[0]:
                             gameStart = True
                             i[3] = 2
+                            dealer.append(i)
                     for i in players:#check if there are sufficient players available
                         if i[3] == 0:
                             j = j + 1
@@ -115,12 +157,12 @@ def threaded_client(connection):
                             players.sort(key=sortPlayers)
                             playerList = players[0:j]
                             gameId += 1
-                            start_new_thread(threadded_game(playerList,game[0],gameId))
+                            start_new_thread(threadded_game(playerList,dealer,gameId))
                             game.append(gameId)
                             games.append(game)
                             reply = 'SUCESS'
                     else:
-                        for i in players:#check if there are sufficient players available
+                        for i in players:#no game, set dealer back to 0
                             if i[0] == game[0]:
                                 gameStart = False
                                 i[3] = 0
@@ -135,6 +177,6 @@ while True:
     clientinfo = []
     clientinfo.append(Client)
     clientinfo.append(address[0])
-    clients.append(clientinfo)
+    clients.append(clientinfo) #client and address[0](IPv4) get saved
     start_new_thread(threaded_client, (Client, ))
     ServerSocket.close()
