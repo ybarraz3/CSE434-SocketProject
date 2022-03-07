@@ -3,7 +3,7 @@ import os
 from _thread import *
 
 ServerSocket = socket.socket()
-host = '10.120.70.145'
+host = '10.120.70.117'
 port = 16001
 players = [] #user, IPv4, port, inGame: 0=no 1=yes&player 2=yes&dealer
 games = []#user, k, gameId
@@ -121,14 +121,15 @@ def threaded_client(connection):
             player = decodeddata.split(' ')
             player.remove('register')
             player.append('0') # this number will represent 1 if in game 2 if dealer and 0 if not in game
-            
-            if any(i[0] == player[2] for i in players):
-               reply = 'FAILURE'
+            if(str(len(players)) != 4):
+                reply = 'FAILURE'
+            if any(i[2] == player[2] for i in players):
+                reply = 'FAILURE'
             elif any(i[0] == player[2] for i in players):
-               reply = 'FAILURE'
+                reply = 'FAILURE'
             else:
-               players.append(player)
-               reply = 'SUCCESS'
+                players.append(player)
+                reply = 'SUCCESS'
             connection.sendall(str.encode(reply))
         elif decodeddata[0:12] == 'de-register ':#checks if command used was de-register
             reply = 'FAILURE'
@@ -153,8 +154,7 @@ def threaded_client(connection):
             game.remove('game') # list becomes: user k
             gameStart = False
             dealer = []
-            print(game[0]+ ' ' +game[1])
-            if 1 <= game[1] <= 3:
+            if 1 <= int(game[1]) <= 3:
                 if game[0] in players:# check if user is in player
                     j = 0
                     for i in players:#check if there are dealer is already in game
@@ -163,7 +163,7 @@ def threaded_client(connection):
                             i[3] = 2
                             dealer.append(i)
                     for i in players:#check if there are sufficient players available
-                        if i[3] == 0:
+                        if i[3] == '0':
                             j = j + 1
                     if j >= game[1]:
                         if gameStart == True: #start a new thread and begin game
