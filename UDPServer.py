@@ -122,9 +122,9 @@ def threaded_client(connection):
             player.remove('register')
             player.append('0') # this number will represent 1 if in game 2 if dealer and 0 if not in game
             
-            if player[2] in players[2]:
+            if any(i[0] == player[2] for i in players):
                reply = 'FAILURE'
-            elif player[0] in players[0]:
+            elif any(i[0] == player[2] for i in players):
                reply = 'FAILURE'
             else:
                players.append(player)
