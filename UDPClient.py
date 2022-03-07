@@ -3,7 +3,7 @@ import socket
 import random
 
 ClientSocket = socket.socket()
-host = '10.120.70.117'
+host = '10.120.70.145'
 port = 16001
 inGame = 0 #0 for not in game, 1 for player, 2 for dealer
 cards = []
@@ -37,7 +37,6 @@ while ans != 'exit':
         ClientSocket.send(str.encode(ans))
         Response = ClientSocket.recv(1024)
         print(Response.decode('utf-8'))
-        ClientSocket.close()
     elif ans[0:9] =='register ':
         ClientSocket.send(str.encode(ans))
         Response = ClientSocket.recv(1024)

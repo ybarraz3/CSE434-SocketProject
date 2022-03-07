@@ -3,7 +3,7 @@ import os
 from _thread import *
 
 ServerSocket = socket.socket()
-host = '10.120.70.117'
+host = '10.120.70.145'
 port = 16001
 players = [] #user, IPv4, port, inGame: 0=no 1=yes&player 2=yes&dealer
 games = []#user, k, gameId
@@ -97,7 +97,8 @@ def threadded_game(playerList, dealer, gameIdnum):
 
 def threaded_client(connection):
     connection.send(str.encode('Welcome to the Server!'))
-    while True:
+    connec = True
+    while connec:
         data = connection.recv(2048)
         decodeddata = data.decode('utf-8')
         reply = 'Server Says: ' + data.decode('utf-8')
@@ -107,6 +108,7 @@ def threaded_client(connection):
                 reply += str(games)#returns list
             else:
                 reply = '0\n[]'#no games
+            connection.sendall(str.encode(reply))
         elif decodeddata == 'query players':#checks if command used was query players
             global players
             if players:
@@ -114,18 +116,20 @@ def threaded_client(connection):
                 reply += str(players)#returns list
             else:
                 reply = '0\n[]'#no players
+            connection.sendall(str.encode(reply))
         elif decodeddata[0:9] == 'register ':#checks if command used was register
             player = decodeddata.split(' ')
             player.remove('register')
             player.append('0') # this number will represent 1 if in game 2 if dealer and 0 if not in game
             
-            if player[2] in players:
+            if player[2] in players[2]:
                reply = 'FAILURE'
-            elif player[0] in players:
+            elif player[0] in players[0]:
                reply = 'FAILURE'
             else:
                players.append(player)
                reply = 'SUCCESS'
+            connection.sendall(str.encode(reply))
         elif decodeddata[0:12] == 'de-register ':#checks if command used was de-register
             reply = 'FAILURE'
             initialLength = len(players)
@@ -133,20 +137,24 @@ def threaded_client(connection):
             resultLength = len(players)
             if initialLength != resultLength:
                 reply = 'SUCCESS'
-            break
+            connection.sendall(str.encode(reply))
         elif decodeddata == 'join game':
             reply = 0
             for i in players:
                 if i[1] == address[0]:
                     reply == i[3]
-        elif decodeddata[0:11] == 'start game':
+            connection.sendall(str.encode(reply))
+        elif decodeddata == 'exit':
+            connec = False
+        elif decodeddata[0:11] == 'start game ':
             reply = 'FAILURE'
             game = decodeddata.split(' ')
             game.remove('start')
-            game.remove('game')
+            game.remove('game') # list becomes: user k
             gameStart = False
             dealer = []
-            if 1<= game[1] <= 3:
+            print(game[0]+ ' ' +game[1])
+            if 1 <= game[1] <= 3:
                 if game[0] in players:# check if user is in player
                     j = 0
                     for i in players:#check if there are dealer is already in game
@@ -171,9 +179,9 @@ def threaded_client(connection):
                             if i[0] == game[0]:
                                 gameStart = False
                                 i[3] = 0
+            connection.sendall(str.encode(reply))
         else:
             reply = 'error'
-        connection.sendall(str.encode(reply))
     connection.close()
 
 while True:
