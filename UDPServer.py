@@ -3,7 +3,7 @@ import os
 from _thread import *
 
 ServerSocket = socket.socket()
-host = '10.120.70.106'
+host = '10.120.70.117'
 port = 16001
 players = [] #user, IPv4, port, inGame: 0=no 1=yes&player 2=yes&dealer
 games = []#user, k, gameId
@@ -134,6 +134,11 @@ def threaded_client(connection):
             if initialLength != resultLength:
                 reply = 'SUCCESS'
             break
+        elif decodeddata == 'join game':
+            reply = 0
+            for i in players:
+                if i[1] == address[0]:
+                    reply == i[3]
         elif decodeddata[0:11] == 'start game':
             reply = 'FAILURE'
             game = decodeddata.split(' ')
@@ -179,4 +184,5 @@ while True:
     clientinfo.append(address[0])
     clients.append(clientinfo) #client and address[0](IPv4) get saved
     start_new_thread(threaded_client, (Client, ))
-    ServerSocket.close()
+    
+ServerSocket.close()

@@ -3,7 +3,7 @@ import socket
 import random
 
 ClientSocket = socket.socket()
-host = '10.120.70.106'
+host = '10.120.70.117'
 port = 16001
 inGame = 0 #0 for not in game, 1 for player, 2 for dealer
 cards = []
@@ -28,10 +28,6 @@ ans = 'open'
 Response = ClientSocket.recv(1024)
 while ans != 'exit':
     ans = input('\nEnter a command:')
-    Respponse = ClientSocket.recv(1024)
-    decResponse = Respponse.decode('utf-8')
-    if(decResponse == 'player'):
-        inGame = 1
     #will check if any of the commands were used
     if ans == 'query games' or ans == 'query players':
         ClientSocket.send(str.encode(ans))
@@ -56,7 +52,13 @@ while ans != 'exit':
         print(Response.decode('utf-8'))
         if(Response == 'SUCCESS'):
             inGame = 2
-    if inGame == 1 or inGame == 2:#player
+    elif ans == "join game":
+        #if not currently in game
+        ClientSocket.send(str.encode(ans))
+        Response = ClientSocket.recv(1024)
+        print(Response.decode('utf-8'))
+        inGame = Response
+    elif inGame == 1 or inGame == 2:#player
         print('Welcome to game')
         while inGame == 1 or inGame == 2:
             response = ClientSocket.recv(1024)
