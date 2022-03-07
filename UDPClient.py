@@ -16,6 +16,7 @@ random.shuffle(stock)
 discard = []
 discard.append(stock[0])
 stock.pop(0)
+points = 0
 
 print('Waiting for connection')
 try:

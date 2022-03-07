@@ -123,11 +123,13 @@ def threaded_client(connection):
             player.append('0') # this number will represent 1 if in game 2 if dealer and 0 if not in game
             if(str(len(players)) != 4):
                 reply = 'FAILURE'
-            if any(i[2] == player[2] for i in players):
-                reply = 'FAILURE'
-            elif any(i[0] == player[2] for i in players):
-                reply = 'FAILURE'
-            else:
+            for i in players:
+                if i[2] == players[2]:
+                    reply = 'FAILURE'
+            for i in players:
+                if i[0] == players[0]:
+                    reply = 'FAILURE'
+            if reply != 'FAILURE':
                 players.append(player)
                 reply = 'SUCCESS'
             connection.sendall(str.encode(reply))
@@ -155,30 +157,31 @@ def threaded_client(connection):
             gameStart = False
             dealer = []
             if 1 <= int(game[1]) <= 3:
-                if game[0] in players:# check if user is in player
-                    j = 0
-                    for i in players:#check if there are dealer is already in game
-                        if i[0] == game[0]:
-                            gameStart = True
-                            i[3] = 2
-                            dealer.append(i)
-                    for i in players:#check if there are sufficient players available
-                        if i[3] == '0':
-                            j = j + 1
-                    if j >= game[1]:
-                        if gameStart == True: #start a new thread and begin game
-                            players.sort(key=sortPlayers)
-                            playerList = players[0:j]
-                            gameId += 1
-                            start_new_thread(threadded_game(playerList,dealer,gameId))
-                            game.append(gameId)
-                            games.append(game)
-                            reply = 'SUCCESS'
-                    else:
-                        for i in players:#no game, set dealer back to 0
+                for i in players:# check if user is in player
+                    if game[0] == player[0]:
+                        j = 0
+                        for i in players:#check if there are dealer is already in game
                             if i[0] == game[0]:
-                                gameStart = False
-                                i[3] = 0
+                                gameStart = True
+                                i[3] = 2
+                                dealer.append(i)
+                        for i in players:#check if there are sufficient players available
+                            if i[3] == '0':
+                                j = j + 1
+                        if j >= game[1]:
+                            if gameStart == True: #start a new thread and begin game
+                                players.sort(key=sortPlayers)
+                                playerList = players[0:j]
+                                gameId += 1
+                                start_new_thread(threadded_game(playerList,dealer,gameId))
+                                game.append(gameId)
+                                games.append(game)
+                                reply = 'SUCCESS'
+                        else:
+                            for i in players:#no game, set dealer back to 0
+                                if i[0] == game[0]:
+                                    gameStart = False
+                                    i[3] = 0
             connection.sendall(str.encode(reply))
         else:
             reply = 'error'
