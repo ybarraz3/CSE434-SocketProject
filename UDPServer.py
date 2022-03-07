@@ -3,7 +3,7 @@ import os
 from _thread import *
 
 ServerSocket = socket.socket()
-host = '10.120.70.117'
+host = '10.120.70.106'
 port = 16001
 players = [] #user, IPv4, port, inGame: 0=no 1=yes&player 2=yes&dealer
 games = []#user, k, gameId
@@ -121,7 +121,7 @@ def threaded_client(connection):
             player = decodeddata.split(' ')
             player.remove('register')
             player.append('0') # this number will represent 1 if in game 2 if dealer and 0 if not in game
-            if(str(len(players)) != 4):
+            if(str(len(player)) != 4):
                 reply = 'FAILURE'
             for i in players:
                 if i[2] == players[2]:

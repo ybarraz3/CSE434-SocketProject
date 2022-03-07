@@ -3,7 +3,7 @@ import socket
 import random
 
 ClientSocket = socket.socket()
-host = '10.120.70.117'
+host = '10.120.70.106'
 port = 16001
 inGame = 0 #0 for not in game, 1 for player, 2 for dealer
 cards = []
